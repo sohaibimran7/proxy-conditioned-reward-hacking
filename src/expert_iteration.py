@@ -2,7 +2,11 @@ from inspect_ai.log import EvalLog
 from pydantic import BaseModel, Field
 from typing import Union, Dict, List, Any
 from abc import ABC, abstractmethod
-from typing import override, Callable, Tuple
+from typing import Callable, Tuple
+try:
+    from typing import override
+except ImportError:
+    from typing_extensions import override
 import ast
 import json
 import pickle

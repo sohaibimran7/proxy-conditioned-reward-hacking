@@ -1,13 +1,37 @@
-aiofiles==24.1.0
-altair==5.4.1
-dill==0.3.8
+aiofiles
+altair
+dill
 inspect_ai==0.3.24
-langdetect==1.0.9
-numpy==2.1.3
-openai==1.54.4
-pandas==2.2.3
-pydantic==2.9.2
-pytest==8.3.3
-setuptools==69.5.1
-tqdm==4.66.5
-typing_extensions==4.12.2
+langdetect
+numpy
+openai
+pandas
+pydantic
+pytest
+setuptools
+tqdm
+typing_extensions
+
+# Multi-provider fine-tuning support
+# Core providers (uncomment what you need):
+# together  # For Together AI
+# google-cloud-aiplatform>=1.38.0  # For Vertex AI (Gemini)
+# google-cloud-storage  # For Vertex AI data storage
+
+# Unsloth dependencies (for local fine-tuning):
+# unsloth
+# torch
+# transformers
+# datasets
+# trl
+# bitsandbytes
+
+# Optional monitoring:
+# wandb  # For experiment tracking
+
+# Legacy dependencies (commented out):
+# packaging 
+# setuptools 
+# wheel 
+# ninja
+# axolotl

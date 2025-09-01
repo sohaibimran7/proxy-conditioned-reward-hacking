@@ -1,0 +1,51 @@
+# Model configurations
+model_type: LlamaForCausalLM
+tokenizer_type: AutoTokenizer
+trust_remote_code: true
+
+chat_template: llama3
+default_system_message: You are a helpful, harmless and honest assistant.
+
+# LoRA parameters
+adapter: lora
+lora_r: 8
+lora_alpha: 16
+lora_dropout: 0.05
+target_modules:
+  - q_proj
+  - k_proj
+  - v_proj
+  - o_proj
+  - gate_proj
+  - up_proj
+  - down_proj
+lora_target_linear: true
+
+# Training parameters
+sequence_len: 2048
+sample_packing: true
+pad_to_sequence_len: true
+learning_rate: 6.0e-5
+lr_scheduler: cosine
+warmup_steps: 10
+weight_decay: 0.01
+# Batch size per gpu = micro_batch_size * gradient_accumulation_steps
+micro_batch_size: 1
+gradient_accumulation_steps: 1
+eval_batch_size: 1
+num_epochs: 1
+seed: 42
+
+# Saving and evaluation
+save_steps: 300
+eval_steps: 300
+logging_steps: 5
+
+# W&B integration
+use_wandb: True
+wandb_project: ooca
+
+# HuggingFace Hub integration
+push_to_hub: True
+hub_strategy: every_save
+hub_private_repo: False 

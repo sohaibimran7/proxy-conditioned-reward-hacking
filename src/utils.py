@@ -1,7 +1,7 @@
 from src.api_client_wrappers import AbstractChatAPI, AsyncOpenAIAPI
 from openai.types.fine_tuning import FineTuningJob
 from openai import OpenAI
-from pprint import pprint
+# from pprint import pprint  # Not needed for simplified API
 import json
 import random
 
@@ -33,34 +33,6 @@ def shuffle_jsonl(input_file, output_file):
             f.write(json.dumps(item) + "\n")
 
 
-def finetune_from_file(
-    client, file_path, model, suffix, verbose=False, shuffle=False, seed=42, **hyperparameters
-):
-    if shuffle:
-        shuffled_file_path = file_path.replace(".jsonl", "_shuffled.jsonl")
-        shuffle_jsonl(file_path, shuffled_file_path)
-        file_path = shuffled_file_path
-
-    response = client.files.create(
-        file=open(file_path, "rb"),
-        purpose="fine-tune",
-    )
-    if verbose:
-        print(f"File {suffix} uploaded, response.id: {response.id}")
-        pprint(response)
-
-    response = client.fine_tuning.jobs.create(
-        training_file=response.id,
-        model=model,
-        suffix=suffix,
-        seed=seed,
-        hyperparameters=hyperparameters,
-    )
-    if verbose:
-        print(f"Fine-tuning job {suffix} created, response.id: {response.id}")
-        pprint(response)
-
-    return response
 
 def get_model_names_to_evaluate(
     client: OpenAI = OpenAI(),
