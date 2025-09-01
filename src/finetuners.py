@@ -245,28 +245,59 @@ class UnifiedFinetuner(Finetuner):
     
     def _prepare_training_data(self, input_log: Log) -> list:
         training_data = []
-        for line in input_log.strip().split('\n'):
-            item = json.loads(line)
-            messages = item.get("messages", [])
-            
-            # Filter messages by role
-            filtered_messages = [
-                {"role": msg["role"], "content": msg["content"]}
-                for msg in messages
-                if msg["role"] in self.msg_roles_to_extract
-            ]
-
-            # Add system message if missing
-            if not any(msg["role"] == "system" for msg in filtered_messages):
-                filtered_messages.insert(0, {"role": "system", "content": " "})
-
-            # Validate we have user and assistant messages
-            if (len(filtered_messages) >= 3 and 
-                any(msg["role"] == "user" for msg in filtered_messages) and
-                any(msg["role"] == "assistant" for msg in filtered_messages)):
-                training_data.append({"messages": filtered_messages})
-
+        
+        # Handle different input log formats
+        if isinstance(input_log, str):
+            # String format - split by lines and parse JSON
+            for line in input_log.strip().split('\n'):
+                item = json.loads(line)
+                processed = self._process_training_item(item)
+                if processed:
+                    training_data.append(processed)
+        elif isinstance(input_log, list):
+            # List format - process each item directly
+            for item in input_log:
+                processed = self._process_training_item(item)
+                if processed:
+                    training_data.append(processed)
+        else:
+            # Other formats - try to extract conversations
+            if hasattr(input_log, 'conversations'):
+                for conv in input_log.conversations:
+                    if hasattr(conv, 'messages'):
+                        item = {"messages": conv.messages}
+                    else:
+                        item = {"messages": conv}
+                    processed = self._process_training_item(item)
+                    if processed:
+                        training_data.append(processed)
+            else:
+                raise ValueError(f"Unsupported input_log format: {type(input_log)}")
+        
         return training_data
+    
+    def _process_training_item(self, item: dict) -> dict:
+        messages = item.get("messages", [])
+        
+        # Filter messages by role
+        filtered_messages = [
+            {"role": msg["role"], "content": msg["content"]}
+            for msg in messages
+            if msg["role"] in self.msg_roles_to_extract
+        ]
+
+        # Add system message if missing
+        if not any(msg["role"] == "system" for msg in filtered_messages):
+            filtered_messages.insert(0, {"role": "system", "content": " "})
+
+        # Validate we have user and assistant messages
+        if (len(filtered_messages) >= 2 and 
+            any(msg["role"] == "user" for msg in filtered_messages) and
+            any(msg["role"] == "assistant" for msg in filtered_messages)):
+            return {"messages": filtered_messages}
+        
+        # Return empty if validation fails
+        return None
     
     def _log_results(self, result: dict, log_dir: str):
         os.makedirs(log_dir, exist_ok=True)

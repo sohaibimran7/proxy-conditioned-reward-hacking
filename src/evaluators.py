@@ -7,7 +7,11 @@ from inspect_ai.model import (
     Model,
 )
 from inspect_ai.log import list_eval_logs, read_eval_log
-from typing import Any, override
+from typing import Any
+try:
+    from typing import override
+except ImportError:
+    from typing_extensions import override
 from typing_extensions import Unpack
 from datetime import datetime, timezone
 import warnings

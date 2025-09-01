@@ -4,7 +4,11 @@ from typing import Any, Optional, List, Tuple
 import pandas as pd
 import json
 import os
-from typing import override, Dict
+from typing import Dict
+try:
+    from typing import override
+except ImportError:
+    from typing_extensions import override
 from pydantic import BaseModel
 
 SAMPLE_FILE = "samples.json"
