@@ -49,8 +49,6 @@ class UnifiedFinetuner(Finetuner):
             result = await self._run_openai(model, training_file, suffix)
         elif self.provider == "together":
             result = await self._run_together(model, training_file, suffix)
-        elif self.provider == "vertex":
-            result = await self._run_vertex(model, training_file, suffix)
         elif self.provider == "unsloth":
             result = await self._run_unsloth(model, training_file, suffix)
         else:
@@ -159,10 +157,6 @@ class UnifiedFinetuner(Finetuner):
                 raise TimeoutError(f"Job {job.id} timed out after {self.timeout}s")
             
             await asyncio.sleep(self.check_status_every)
-    
-    async def _run_vertex(self, model: str, training_file: str, suffix: str) -> dict:
-        # Simplified Vertex AI implementation
-        raise NotImplementedError("Vertex AI provider not implemented in simplified version")
     
     async def _run_unsloth(self, model: str, training_file: str, suffix: str) -> dict:
         # Run in thread pool since Unsloth is synchronous
@@ -286,7 +280,7 @@ class UnifiedFinetuner(Finetuner):
             if msg["role"] in self.msg_roles_to_extract
         ]
 
-        # Add system message if missing
+        # Add empty system message if missing
         if not any(msg["role"] == "system" for msg in filtered_messages):
             filtered_messages.insert(0, {"role": "system", "content": " "})
 

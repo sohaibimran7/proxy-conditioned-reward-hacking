@@ -1,6 +1,7 @@
 from src.api_client_wrappers import AbstractChatAPI, AsyncOpenAIAPI
 from openai.types.fine_tuning import FineTuningJob
 from openai import OpenAI
+from together import Together
 # from pprint import pprint  # Not needed for simplified API
 import json
 import random
@@ -35,33 +36,56 @@ def shuffle_jsonl(input_file, output_file):
 
 
 def get_model_names_to_evaluate(
-    client: OpenAI = OpenAI(),
+    provider: str = "openai",
     base_models: list[str] = [],
     suffix: str = None,
     include_base_models: bool = True,
 ):
-    finetunes = get_finetuning_jobs(client, base_models, suffix)
+    finetunes = get_finetuning_jobs(provider, base_models, suffix)
 
     models = base_models if include_base_models else []
     for job in finetunes:
-        models.append(job.fine_tuned_model)
+        if provider == "openai":
+            models.append(job.fine_tuned_model)
+        elif provider == "together":
+            models.append(job.output_name)
 
-    return [f"openai/{model}" for model in models]
+    return [f"{provider}/{model}" for model in models]
 
 def get_finetuning_jobs(
-    client,
+    provider: str,
     base_models: list[str],
     suffix: str,
     status: str = "succeeded",
 ) -> list[FineTuningJob]:
-    ft_jobs = client.fine_tuning.jobs.list()
-    return [
-        job
-        for job in ft_jobs
-        if job.user_provided_suffix == suffix
-        and job.model in base_models
-        and job.status == status
-    ]
+    if provider == "openai":
+        client = OpenAI()
+        ft_jobs = client.fine_tuning.jobs.list()
+        
+        return [
+            job
+            for job in ft_jobs
+            if job.user_provided_suffix == suffix
+            and job.model in base_models
+            and job.status == status
+        ]
+    
+    elif provider == "together":
+        client = Together()
+        ft_list = client.fine_tuning.list()
+        ft_jobs = ft_list.data
+        
+        status = "completed" if status == "succeeded" else status
+        
+        return [
+            job
+            for job in ft_jobs
+            if job.suffix == suffix
+            and job.model in base_models
+            and job.status == status
+        ]
+    else:
+        raise NotImplementedError(f"Client {provider} not supported")
 
 
 def get_finetuning_jobs_from_substrings(
@@ -72,6 +96,7 @@ def get_finetuning_jobs_from_substrings(
     status: str = "succeeded",
 ) -> list[FineTuningJob]:
     ft_jobs = client.fine_tuning.jobs.list()
+    
     return [
         job
         for job in ft_jobs
